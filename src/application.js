@@ -1,6 +1,7 @@
 // ---------- imports -----------------------
 const fs   = require("fs")
 const path = require("path")
+const moment = require("moment");
 
 const express    = require("express")
 const bodyparser = require("body-parser")
@@ -12,6 +13,7 @@ const app = express();
 const axios = require("axios")
 
 const db = require("./db")
+const getGames   = require("./models/getGames")
 
 // -------------------------------------------
 
@@ -31,8 +33,7 @@ function read(file) {
 }
 
 module.exports = function application(ENV) {
-  // let date = ["2020-02-22"]
-  // getGames(date, db, true)
+  let date = ["2020-02-22"]
   // axios.get(`http://localhost:8001/api/global/1`)
   //   .catch(err => console.log(err))
 
@@ -54,9 +55,16 @@ module.exports = function application(ENV) {
     res.send('Hello World!')
   })
   app.get('/games', (req, res) => {
+    let date = (new Date()).toISOString().split('T')[0];
     for (const key in req.query) {
       console.log(key, req.query[key])
+      if (key==='date') {
+        date = req.query[key];
+        console.log('key recognizes date', date);
+      }
     }
+    getGames([date], db, true)
+
     res.send('Hello World from Games!')
   })
   // app.use("/api/pay", payRoute(db, moneyHelper));
