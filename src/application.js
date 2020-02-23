@@ -36,7 +36,7 @@ function read(file) {
 }
 
 module.exports = function application(ENV) {
-  let date = ["2020-02-22"]
+  let date = (moment().subtract(1, 'days')).toISOString(true).split('T')[0];
   // axios.get(`http://localhost:8001/api/global/1`)
   //   .catch(err => console.log(err))
 
@@ -47,7 +47,7 @@ module.exports = function application(ENV) {
   // }, 30000)
 
   // setInterval(() => {
-  //   getGames(date, db, true)
+  //   getGames([date], db, true)
   // }, 120000)
 
   app.use(cors())
@@ -72,42 +72,25 @@ module.exports = function application(ENV) {
   })
 
   app.get('/mock_data', async (req, res) => {
-    const filename = `./2020-02-22-mock.json`;
+    let fileName = `./data-files/game_scores-mock.json`;
+    const gameData = require("../lib/in-memory-db").scoreUpdates;
+    console.log('game data num element', gameData.length);
+    res.json(gameData[0]);
+    // remove the first item and update file
+    gameData.shift();
+    console.log('game data after popping one from top', gameData.length)
+    fs.writeFileSync(fileName, JSON.stringify(gameData), (err) => {
+      if (err) throw err;
+      console.log(`The file ${fileName} has been updated with item removed from top of array! ${today.toTimeString()}`);
+    });
+  })
+
+  app.get('/view_mock_data', async (req, res) => {
+    let fileName = `./data-files/game_scores-mock.json`;
     const gameData = require("../lib/in-memory-db").scoreUpdates;
     console.log('game data num element', gameData.length);
     res.json(gameData);
   })
-  // app.use("/api/pay", payRoute(db, moneyHelper));
-  // app.use("/api/test", testRoute(db, betsHelper))
-  // app.use("/api", gameRoute(db, actions.updateState))
-  // app.use("/api", scoreRoute(db, actions.updateState))
-  // app.use("/api", userRoute(db))
-  // app.use("/api", globalRoute(db, actions.updateState))
-  // app.use("/api", parlayRoute(db, actions.updateState))
-
-  // if (ENV === "development" || ENV === "test") {
-  //   Promise.all([
-  //     read(path.resolve(__dirname, `db/schema/create.sql`)),
-  //     read(path.resolve(__dirname, `db/schema/${ENV}.sql`))
-  //   ])
-  //     .then(([create, seed]) => {
-  //       app.get("/api/debug/reset", (request, response) => {
-  //         db.query(create)
-  //           .then(() => db.query(seed))
-  //           .then(() => {
-  //             console.log("Database Reset");
-  //             response.status(200).send("Database Reset")
-  //           })
-  //       })
-  //     })
-  //     .catch(error => {
-  //       console.log(`Error setting up the reset route: ${error}`)
-  //     })
-  // }
-
-  // app.close = function() {
-  //   return db.end()
-  // };
 
   return app;
 };
