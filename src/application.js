@@ -1,19 +1,22 @@
 // ---------- imports -----------------------
-const fs   = require("fs")
+const fs = require("fs")
+const readline = require('readline');
+
 const path = require("path")
 const moment = require("moment");
 
-const express    = require("express")
+const express = require("express")
 const bodyparser = require("body-parser")
-const helmet     = require("helmet")
-const cors       = require("cors")
+const helmet = require("helmet")
+const cors = require("cors")
 
 const app = express();
 
 const axios = require("axios")
 
-const db = require("./db")
-const getGames   = require("./models/getGames")
+const db = require("../lib/in-memory-db")
+
+const getGames = require("./models/getGames")
 
 // -------------------------------------------
 
@@ -55,17 +58,35 @@ module.exports = function application(ENV) {
     res.send('Hello World!')
   })
   app.get('/games', (req, res) => {
-    let date = (new Date()).toISOString().split('T')[0];
+    let date = (moment().subtract(1, 'days')).toISOString(true).split('T')[0];
     for (const key in req.query) {
       console.log(key, req.query[key])
-      if (key==='date') {
+      if (key === 'date') {
         date = req.query[key];
         console.log('key recognizes date', date);
       }
     }
-    getGames([date], db, true)
-
+    console.log("date used", date);
+    const games = getGames([date], db, true)
     res.send('Hello World from Games!')
+  })
+
+  app.get('/mock_data', async (req, res) => {
+    const filename = `./2020-02-22-mock.json`;
+    const gameData = require("../lib/in-memory-db");
+    res.json(gameData);
+    // const readInterface = await readline.createInterface({
+    //   input: fs.createReadStream(filename)
+    // });
+    // await readInterface.on('line', function (line) {
+    //   //console.log("line", line)
+    //   gameData.push(line);
+    // });
+    // console.log('game data num element', gameData.length);
+    // for (game of gameData) {
+    //   console.log('element', game);
+    // }
+    // res.send('hi');
   })
   // app.use("/api/pay", payRoute(db, moneyHelper));
   // app.use("/api/test", testRoute(db, betsHelper))

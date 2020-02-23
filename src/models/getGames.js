@@ -4,14 +4,14 @@ const fs = require("fs");
 // source: https://stackoverflow.com/questions/23593052/format-javascript-date-as-yyyy-mm-dd
 function formatDate(date) {
   let d = new Date(date),
-      month = '' + (d.getMonth() + 1),
-      day = '' + d.getDate(),
-      year = d.getFullYear();
+    month = '' + (d.getMonth() + 1),
+    day = '' + d.getDate(),
+    year = d.getFullYear();
 
-  if (month.length < 2) 
-      month = '0' + month;
-  if (day.length < 2) 
-      day = '0' + day;
+  if (month.length < 2)
+    month = '0' + month;
+  if (day.length < 2)
+    day = '0' + day;
 
   return [year, month, day].join('-');
 }
@@ -27,15 +27,22 @@ module.exports = (dates, db, update) => {
     })
       .then(res => {
         // get all the games for the current date.
+        console.log("response length", res.data.response.length);
         const nbaGames = res.data.response.filter((game) => {
           return game.league.name === "NBA"
         })
-        const today = new Date();
-        let fileName = `./${formatDate(today)}-mock.txt`;
-        fs.appendFile(fileName, JSON.stringify(nbaGames), (err) => {
-          if (err) throw err;
-          console.log(`The file ${fileName} has been updated! ${today.toTimeString()}`);
-        });
+        console.log("response length after filter", nbaGames.length);
+        console.log("games", JSON.stringify(nbaGames));
+        if (nbaGames) {
+          const today = new Date();
+          let fileName = `./data-files/${formatDate(today)}-mock.json`;
+          fs.writeFileSync(fileName, `${JSON.stringify({response: nbaGames})}`, (err) => {
+            if (err) throw err;
+            console.log(`The file ${fileName} has been updated! ${today.toTimeString()}`);
+          });
+        } else {
+          console.log('no nba games after filter');
+        }
 
         // res.data.response.forEach(game => {
         //   if (game.league.name === "NBA") {
