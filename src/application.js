@@ -36,15 +36,8 @@ function read(file) {
 }
 
 module.exports = function application(ENV) {
-  let date = (moment().subtract(1, 'days')).toISOString(true).split('T')[0];
-  // axios.get(`http://localhost:8001/api/global/1`)
-  //   .catch(err => console.log(err))
+  let date = (moment().subtract(0, 'days')).toISOString(true).split('T')[0];
 
-  // setInterval(() => {
-  //   getScores(date, db)
-  //   axios.get(`http://localhost:8001/api/global/1`)
-  //     .catch(err => console.log(err))
-  // }, 30000)
   const isUpdate = false;
   if (isUpdate) {
     setInterval(() => {
@@ -60,7 +53,6 @@ module.exports = function application(ENV) {
     res.send('Hello World!')
   })
   app.get('/games', (req, res) => {
-    let date = (moment().subtract(1, 'days')).toISOString(true).split('T')[0];
     for (const key in req.query) {
       console.log(key, req.query[key])
       if (key === 'date') {
