@@ -73,20 +73,9 @@ module.exports = function application(ENV) {
 
   app.get('/mock_data', async (req, res) => {
     const filename = `./2020-02-22-mock.json`;
-    const gameData = require("../lib/in-memory-db");
+    const gameData = require("../lib/in-memory-db").scoreUpdates;
+    console.log('game data num element', gameData.length);
     res.json(gameData);
-    // const readInterface = await readline.createInterface({
-    //   input: fs.createReadStream(filename)
-    // });
-    // await readInterface.on('line', function (line) {
-    //   //console.log("line", line)
-    //   gameData.push(line);
-    // });
-    // console.log('game data num element', gameData.length);
-    // for (game of gameData) {
-    //   console.log('element', game);
-    // }
-    // res.send('hi');
   })
   // app.use("/api/pay", payRoute(db, moneyHelper));
   // app.use("/api/test", testRoute(db, betsHelper))

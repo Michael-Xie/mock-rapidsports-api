@@ -26,17 +26,24 @@ module.exports = (dates, db, update) => {
       }
     })
       .then(res => {
+
         // get all the games for the current date.
         console.log("response length", res.data.response.length);
         const nbaGames = res.data.response.filter((game) => {
           return game.league.name === "NBA"
         })
         console.log("response length after filter", nbaGames.length);
-        console.log("games", JSON.stringify(nbaGames));
         if (nbaGames) {
+          let fileName = `./data-files/game_scores-mock.json`;
+          const scoreUpdates = require('../../lib/in-memory-db').scoreUpdates;
+          // very hacky, need to initialize with [{}] in file to not crash, this just takes that out
+          if (Object.keys(scoreUpdates[0]).length === 0) {
+            scoreUpdates.pop();
+          }
+          scoreUpdates.push({response: nbaGames});
           const today = new Date();
-          let fileName = `./data-files/${formatDate(today)}-mock.json`;
-          fs.writeFileSync(fileName, `${JSON.stringify({response: nbaGames})}`, (err) => {
+          // write newly appended update
+          fs.writeFileSync(fileName, JSON.stringify(scoreUpdates), (err) => {
             if (err) throw err;
             console.log(`The file ${fileName} has been updated! ${today.toTimeString()}`);
           });
