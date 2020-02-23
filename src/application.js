@@ -45,10 +45,12 @@ module.exports = function application(ENV) {
   //   axios.get(`http://localhost:8001/api/global/1`)
   //     .catch(err => console.log(err))
   // }, 30000)
-
-  // setInterval(() => {
-  //   getGames([date], db, true)
-  // }, 120000)
+  const isUpdate = false;
+  if (isUpdate) {
+    setInterval(() => {
+      getGames([date], db, true)
+    }, 30000)
+  }
 
   app.use(cors())
   app.use(helmet())
@@ -71,6 +73,7 @@ module.exports = function application(ENV) {
     res.send('Hello World from Games!')
   })
 
+  // Use this route to grab live mock data
   app.get('/mock_data', async (req, res) => {
     let fileName = `./data-files/game_scores-mock.json`;
     const gameData = require("../lib/in-memory-db").scoreUpdates;
