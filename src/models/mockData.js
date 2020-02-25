@@ -17,15 +17,8 @@ const calculateTotal = function(scores) {
 }
 
 
-/**
- * [someFunction description]
- * @param  {[type]} arg1 [description]
- * @param  {[type]} arg2 [description]
- * @return {[type]}      [description]
- */
-
-const beforeGameStart = function(gameData, status) {
-  const {callPeriod, timeBuffer, date, games, gameDuration, avgGamePoints} = gameData;
+const generateMockGame = function(gamesData, status) {
+  const {callPeriod, timeBuffer, date, games, gameDuration, avgGamePoints} = gamesData;
   let numCalls = 0;
   let avgGamePointsPerCall = 0;
   const quarterDict = {Q1: 'quarter_1', Q2: 'quarter_2', Q3: 'quarter_3', Q4: 'quarter_4'};
@@ -37,11 +30,13 @@ const beforeGameStart = function(gameData, status) {
   } else if (["Q1", "Q2", "Q3", "Q4"].includes(status)) {
     numCalls = parseInt(gameDuration/4*(1/callPeriod));
     avgGamePointsPerCall = parseInt(avgGamePoints/4/numCalls);
-
+  } else if (status === "FT") {
+    numCalls = 1;
+    avgGamePointsPerCall = 0;
   }
   console.log('numCalls', numCalls);
   console.log('avgGamePointsPerCall', avgGamePointsPerCall);
-  console.log('copyGamesData', copyGamesData);
+  // console.log('copyGamesData', copyGamesData);
 
   const calls = []
   for (let i = 0; i < numCalls; i++) {
@@ -59,36 +54,27 @@ const beforeGameStart = function(gameData, status) {
         scoresUpdate.home.total = calculateTotal(scoresUpdate.home);
         scoresUpdate.away.total = calculateTotal(scoresUpdate.away);
       }
-      console.log(status, "statusUpdate", scoresUpdate);
+      // console.log(status, "statusUpdate", scoresUpdate);
       // console.log('scoreUpdate after gen', scoresUpdate);
       const call =  {
         id: key,
         date: adjustedDate.toDate(),
         timestamp: getTimestamp(adjustedDate),
         status: {short: status},
+        league: {name: "NBA"},
         teams: {home: {name: value.home}, away: {name: value.away}},
         scores: scoresUpdate
       };
       responses.push(call);
       // get scores updated to gamesData to pass down to next status
       copyGamesData.games[call.id].scores = scoresUpdate;
+      // console.log('updated copyGames for game', call.id, status, 'with', scoresUpdate);
     }
     // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
 
   }
   return [calls, copyGamesData];
-}
-
-const generateMockGame = function(gameData) {
-  // const beforeGameStart;
-  // const Q1;
-  // const Q2;
-  // const Q3;
-  // const Q4;
-  // //const AOT;
-  // const gameFinished;
-  // return [...beforeGameStart, ...Q1, ...Q2, ...Q3, ...Q4, ...gameFinished];
 }
 
 // date - moment object
@@ -103,34 +89,52 @@ const offsetDate = function(date, value, quantifier) {
 }
 
 // main
-const date = moment();
-const initScores = 
-{
-  home: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0},
-  away: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0}
-};
-const gamesData = {
-  games:{
-    1: {home: 'A', away: 'B', offsetStart: {value: 3, quantifier: 'minutes'}, scores: initScores},
-    2: {home: 'C', away: 'D', offsetStart: {value: 6, quantifier: 'minutes'}, scores: initScores}
-  },
-  date: date,
-  gameDuration: 240, // 4min game
-  callPeriod: 15, // 3sec make 1 call
-  timeBuffer: 10, // 180s or 3min
-  avgGamePoints: 120
-}
 
 // const games = generateMockGame(gamesData)
 // console.log('games', games);
 // console.log('gamesData', gamesData);
-const [Q1, Q1Update] = beforeGameStart(gamesData, "Q1");
-// console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
-const [Q2, Q2Update] = beforeGameStart(Q1Update, "Q2");
-const [Q3, Q3Update] = beforeGameStart(Q2Update, "Q3");
-const [Q4, Q4Update] = beforeGameStart(Q3Update, "Q4");
-console.log('Q3', JSON.stringify(Q4, null, 3));
-// console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "Q1"), null, 4)); //OK
+const createMockGame = function() {
+  const date = moment();
+  const initScores = 
+  {
+    home: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0},
+    away: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0}
+  };
+  const gamesData = {
+    games:{
+      1: {home: 'Los Angeles Clippers', away: 'Houston Rockets', offsetStart: {value: 3, quantifier: 'minutes'}, scores: initScores},
+      2: {home: 'Atlanta Hawks', away: 'Boston Celtics', offsetStart: {value: 6, quantifier: 'minutes'}, scores: initScores}
+    },
+    date: date,
+    gameDuration: 240, // 4min game
+    callPeriod: 15, // 3sec make 1 call
+    timeBuffer: 10, // 180s or 3min
+    avgGamePoints: 120
+  }
+  const [Q1, Q1Update] = generateMockGame(gamesData, "Q1");
+  // console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
+  const [Q2, Q2Update] = generateMockGame(Q1Update, "Q2");
+  const [Q3, Q3Update] = generateMockGame(Q2Update, "Q3");
+  const [Q4, Q4Update] = generateMockGame(Q3Update, "Q4");
+  // console.log('Q4', JSON.stringify(Q4, null, 3));
+  const [FT, FTUpdate] = generateMockGame(Q4Update, "FT");
+  // console.log('FT', JSON.stringify(FT, null, 3));
+  const wholeGame = [...Q1, ...Q2, ...Q3, ...Q4, ...FT];
+  // console.log('wholeGame', JSON.stringify(wholeGame, null, 3));
+  return wholeGame;
+}
+
+// createMockGame();
+module.exports = {createMockGame};
+// const [Q1, Q1Update] = generateMockGame(gamesData, "Q1");
+// // console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
+// const [Q2, Q2Update] = generateMockGame(Q1Update, "Q2");
+// const [Q3, Q3Update] = generateMockGame(Q2Update, "Q3");
+// const [Q4, Q4Update] = generateMockGame(Q3Update, "Q4");
+// console.log('Q4', JSON.stringify(Q4, null, 3));
+// const [FT, FTUpdate] = generateMockGame(Q4Update, "FT");
+// console.log('FT', JSON.stringify(FT, null, 3));
+// // console.log('beforeStart', JSON.stringify(generateMockGame(gamesData, "Q1"), null, 4)); //OK
 
 
 // Basketball
