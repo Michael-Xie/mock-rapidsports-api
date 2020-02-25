@@ -14,37 +14,88 @@ const generateRandom = function(min, max) {
  * @return {[type]}      [description]
  */
 
- /**
- * Return a mock response objects
- * @param  {[type]} arg1 [description]
- * @param  {[type]} arg2 [description]
- * @return {[type]}      [description]
- */
-const createMockData = function (teams, startTime, durationInSec, callPeriod, status) {
-  
-  const averagePointsPerGame = 120;
-  const averagePointsPerQuarter = averagePointsPerGame / 4;
-  const quarterTime = durationInSec / 4;
-  const callsPerGame = parseInt(durationInSec*(1/ callPeriod));
-  const callsPerQuarter = quarterTime * (1 / callPeriod);
-  const quarters = ["Q1", "Q2", "Q3", "Q4"];
-
-  for (let [key, value] of Object.entries(gameData)) {
-    const game = {};
-
-  }
-  return {response: [
-    {
-      id: id,
-      date: date,
-      timestamp: timestamp,
-      status: {short: status},
-      teams: {home: {name: homeTeam}, away: {name: awayTeam}},
-      scores: {home: {quarter_1: quarter_1, quarter_2: quarter_2, quarter_3: quarter_3, quarter_4: quarter_4, total: homeTotal}}
+const beforeGameStart = function(gameData) {
+  const {callPeriod, timeBuffer, date, games} = gameData;
+  const numCalls = timeBuffer*(1/callPeriod);
+  const status = 'NS';
+  const calls = []
+  for (let i = 0; i < numCalls; i++) {
+    const responses = []
+    const adjustedDate = offsetDate(date, i*callPeriod, "seconds")
+    console.log('date adjust', adjustedDate.toDate());
+    for (const [key, value] of Object.entries(games)) {
+      const call =  {
+        id: key,
+        date: adjustedDate.toDate(),
+        timestamp: getTimestamp(adjustedDate),
+        status: {short: status},
+        teams: {home: {name: value.home}, away: {name: value.away}},
+        scores: 
+          {
+            home: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0},
+            away: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0}
+          }
+      };
+      responses.push(call);
     }
-  ]
+    calls.push({response: responses})
   }
-};
+  return calls;
+}
+
+// const generateMockGame = function(gameData) {
+//   const {date} = gameData;
+//   const timestamp = date.toDate().getTime();
+//   const beforeGameStart;
+//   const Q1 = createMockData([{home: 'A', away: 'B'}]);
+//   const Q2;
+//   const Q3;
+//   const Q4;
+//   //const AOT;
+//   const gameFinished;
+//   return [...beforeGameStart, ...Q1, ...Q2, ...Q3, ...Q4, ...gameFinished];
+// }
+
+// date - moment object
+const getTimestamp = function (date) {
+  return date.toDate().getTime();
+}
+
+const offsetDate = function(date, value, quantifier) {
+  let newDate = date.clone();
+  newDate.add(value, quantifier);
+  return newDate;
+}
+
+// main
+const date = moment();
+
+const gamesData = {
+  games:{
+    1: {home: 'A', away: 'B', offsetStart: {value: 3, quantifier: 'minutes'}},
+    2: {home: 'C', away: 'D', offsetStart: {value: 6, quantifier: 'minutes'}}
+  },
+  date: date,
+  gameDuration: 240, // 4min game
+  callPeriod: 3, // 3sec make 1 call
+  timeBuffer: 10 // 180s or 3min
+}
+
+// const games = generateMockGame(gamesData)
+// console.log('games', games);
+// console.log('gamesData', gamesData);
+console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData), null, 4));
+
+
+// Basketball
+// Each quarter is 12min each
+// 4 quarters is 48min
+
+// Each game is 4min (240s)
+// Each quarter is 1min (60s)
+// 1 call/3s
+// 20 calls every min
+
 // const game_id = game.id
 // const date = game.date
 // const timestamp = game.timestamp
@@ -62,47 +113,3 @@ const createMockData = function (teams, startTime, durationInSec, callPeriod, st
 // const home_total = game.scores.home.total || 0
 // const away_total = game.scores.away.total || 0
 
-const generateMockGame = function(gameData) {
-  const {date} = gameData;
-  const timestamp = date.toDate().getTime();
-  const beforeGameStart;
-  const Q1 = createMockData([{home: 'A', away: 'B'}]);
-  const Q2;
-  const Q3;
-  const Q4;
-  //const AOT;
-  const gameFinished;
-  return [...beforeGameStart, ...Q1, ...Q2, ...Q3, ...Q4, ...gameFinished];
-}
-
-// date - moment object
-const setTimestamp = function (date) {
-  return date.toDate().getTime();
-}
-
-const offsetDate = function(date, value, quantifier) {
-  let newDate = date.clone();
-  newDate.add(value, quantifier);
-  return newDate;
-}
-
-// main
-const date = moment();
-const timestamp = date.toDate().getTime();
-
-const gamesData = {
-  1: {home: {name: 'A', timestamp: }}
-}
-const games = generateMockGame({home: 'A', away: 'B', timestamp: timestamp, date: date, })
-const gameDuration = 4*60;
-
-
-
-// Basketball
-// Each quarter is 12min each
-// 4 quarters is 48min
-
-// Each game is 4min (240s)
-// Each quarter is 1min (60s)
-// 1 call/3s
-// 20 calls every min
