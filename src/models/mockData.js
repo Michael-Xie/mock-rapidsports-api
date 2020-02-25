@@ -7,6 +7,9 @@ const generateRandom = function(min, max) {
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 };
 
+
+
+
 /**
  * [someFunction description]
  * @param  {[type]} arg1 [description]
@@ -17,15 +20,17 @@ const generateRandom = function(min, max) {
 const beforeGameStart = function(gameData, status) {
   const {callPeriod, timeBuffer, date, games, gameDuration, avgGamePoints} = gameData;
   let numCalls = 0;
-  let gamePoints = 0;
+  let avgGamePointsPerCall = 0;
+  const quarterDict = {Q1: 'quarter_1', Q2: 'quarter_2', Q3: 'quarter_3', Q4: 'quarter_4'};
 
   if (status === "NS") {
     numCalls = parseInt(timeBuffer*(1/callPeriod));
   } else if (["Q1", "Q2", "Q3", "Q4"].includes(status)) {
     numCalls = parseInt(gameDuration/4*(1/callPeriod));
-    gamePoints = parseInt(avgGamePoints/4);
+    avgGamePointsPerCall = parseInt(avgGamePoints/4/numCalls);
+
   }
-  
+
   const calls = []
   for (let i = 0; i < numCalls; i++) {
     const responses = []
@@ -33,39 +38,46 @@ const beforeGameStart = function(gameData, status) {
     console.log('date adjust', adjustedDate.toDate());
     // create a list of game object for each call
     for (const [key, value] of Object.entries(games)) {
-
+      // set random score for a call
+      const scoresUpdate = {...games[key].scores};       
+      const stat = quarterDict[status];
+      console.log('scoreUpdate', scoresUpdate);
+      if (stat) {
+        scoresUpdate.home[stat] += generateRandom(1, avgGamePointsPerCall);
+        scoresUpdate.away[stat] += generateRandom(1, avgGamePointsPerCall); 
+      }
+      console.log('scoreUpdate after gen', scoresUpdate);
       const call =  {
         id: key,
         date: adjustedDate.toDate(),
         timestamp: getTimestamp(adjustedDate),
         status: {short: status},
         teams: {home: {name: value.home}, away: {name: value.away}},
-        scores: 
-          {
-            home: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0},
-            away: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0}
-          }
+        scores: scoresUpdate
       };
       responses.push(call);
     }
     // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
+
   }
-  return calls;
+  const lastUpdate = calls[calls.length - 1].response;
+  const copyGamesData = {...gamesData};
+  copyGamesData.scores = lastUpdate.scores;
+
+  return [calls, copyGamesData];
 }
 
-// const generateMockGame = function(gameData) {
-//   const {date} = gameData;
-//   const timestamp = date.toDate().getTime();
-//   const beforeGameStart;
-//   const Q1 = createMockData([{home: 'A', away: 'B'}]);
-//   const Q2;
-//   const Q3;
-//   const Q4;
-//   //const AOT;
-//   const gameFinished;
-//   return [...beforeGameStart, ...Q1, ...Q2, ...Q3, ...Q4, ...gameFinished];
-// }
+const generateMockGame = function(gameData) {
+  // const beforeGameStart;
+  // const Q1;
+  // const Q2;
+  // const Q3;
+  // const Q4;
+  // //const AOT;
+  // const gameFinished;
+  // return [...beforeGameStart, ...Q1, ...Q2, ...Q3, ...Q4, ...gameFinished];
+}
 
 // date - moment object
 const getTimestamp = function (date) {
@@ -80,11 +92,15 @@ const offsetDate = function(date, value, quantifier) {
 
 // main
 const date = moment();
-
+const initScores = 
+{
+  home: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0},
+  away: {quarter_1: 0, quarter_2: 0, quarter_3: 0, quarter_4: 0, total: 0}
+};
 const gamesData = {
   games:{
-    1: {home: 'A', away: 'B', offsetStart: {value: 3, quantifier: 'minutes'}},
-    2: {home: 'C', away: 'D', offsetStart: {value: 6, quantifier: 'minutes'}}
+    1: {home: 'A', away: 'B', offsetStart: {value: 3, quantifier: 'minutes'}, scores: initScores},
+    2: {home: 'C', away: 'D', offsetStart: {value: 6, quantifier: 'minutes'}, scores: initScores}
   },
   date: date,
   gameDuration: 240, // 4min game
@@ -97,7 +113,7 @@ const gamesData = {
 // console.log('games', games);
 // console.log('gamesData', gamesData);
 
-console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "NS"), null, 4, {min: 0, max: 0})); //OK
+console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "NS"), null, 4)); //OK
 
 
 // Basketball
