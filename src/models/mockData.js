@@ -14,16 +14,26 @@ const generateRandom = function(min, max) {
  * @return {[type]}      [description]
  */
 
-const beforeGameStart = function(gameData) {
-  const {callPeriod, timeBuffer, date, games} = gameData;
-  const numCalls = timeBuffer*(1/callPeriod);
-  const status = 'NS';
+const beforeGameStart = function(gameData, status) {
+  const {callPeriod, timeBuffer, date, games, gameDuration, avgGamePoints} = gameData;
+  let numCalls = 0;
+  let gamePoints = 0;
+
+  if (status === "NS") {
+    numCalls = parseInt(timeBuffer*(1/callPeriod));
+  } else if (["Q1", "Q2", "Q3", "Q4"].includes(status)) {
+    numCalls = parseInt(gameDuration/4*(1/callPeriod));
+    gamePoints = parseInt(avgGamePoints/4);
+  }
+  
   const calls = []
   for (let i = 0; i < numCalls; i++) {
     const responses = []
     const adjustedDate = offsetDate(date, i*callPeriod, "seconds")
     console.log('date adjust', adjustedDate.toDate());
+    // create a list of game object for each call
     for (const [key, value] of Object.entries(games)) {
+
       const call =  {
         id: key,
         date: adjustedDate.toDate(),
@@ -38,6 +48,7 @@ const beforeGameStart = function(gameData) {
       };
       responses.push(call);
     }
+    // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
   }
   return calls;
@@ -78,13 +89,15 @@ const gamesData = {
   date: date,
   gameDuration: 240, // 4min game
   callPeriod: 3, // 3sec make 1 call
-  timeBuffer: 10 // 180s or 3min
+  timeBuffer: 10, // 180s or 3min
+  avgGamePoints: 120
 }
 
 // const games = generateMockGame(gamesData)
 // console.log('games', games);
 // console.log('gamesData', gamesData);
-console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData), null, 4));
+
+console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "NS"), null, 4, {min: 0, max: 0})); //OK
 
 
 // Basketball
