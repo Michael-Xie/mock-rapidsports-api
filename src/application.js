@@ -35,6 +35,9 @@ function read(file) {
   });
 }
 
+let games = createMockGame();
+
+
 module.exports = function application(ENV) {
   let date = (moment().subtract(0, 'days')).toISOString(true).split('T')[0];
 
@@ -65,37 +68,43 @@ module.exports = function application(ENV) {
   //   res.send('Hello World from Games!')
   // })
 
-  app.get('/create_mock', async(req, res) => {
-    let fileName = `./data-files/game_scores-mock.json`;
-    const scoreUpdates = require('./../lib/in-memory-db').scoreUpdates;
-    // very hacky, need to initialize with [{}] in file to not crash, this just takes that out
-    if (Object.keys(scoreUpdates[0]).length === 0) {
-      scoreUpdates.pop();
-    }
-    scoreUpdates.push(...createMockGame());
-    const today = new Date();
-    // write newly appended update
-    fs.writeFileSync(fileName, JSON.stringify(scoreUpdates), (err) => {
-      if (err) throw res.status(404).send(err);
-      res.send("success in writing file");
-      console.log(`The file ${fileName} has been updated! ${today.toTimeString()}`);
-    });
-  })
+  // app.get('/create_mock', async(req, res) => {
+  //   let fileName = `./data-files/game_scores-mock.json`;
+  //   // const scoreUpdates = require('./../lib/in-memory-db').scoreUpdates;
+  //   // // very hacky, need to initialize with [{}] in file to not crash, this just takes that out
+  //   // if (Object.keys(scoreUpdates[0]).length === 0) {
+  //   //   scoreUpdates.pop();
+  //   // }
+  //   // scoreUpdates.push(...createMockGame());
+  //   const today = new Date();
+  //   // write newly appended update
+  //   fs.writeFileSync(fileName, JSON.stringify(...createMockGame()), (err) => {
+  //     if (err) throw res.status(404).send(err);
+  //     res.send("success in writing file");
+  //     console.log(`The file ${fileName} has been updated! ${today.toTimeString()}`);
+  //   });
+  //   res.send('creating data');
+  // })
 
   // Use this route to grab live mock data
-  // app.get('/mock_data', async (req, res) => {
-  //   let fileName = `./data-files/game_scores-mock.json`;
-  //   const gameData = require("../lib/in-memory-db").scoreUpdates;
-  //   console.log('game data num element', gameData.length);
-  //   res.json(gameData[0]);
-  //   // remove the first item and update file
-  //   gameData.shift();
-  //   console.log('game data after popping one from top', gameData.length)
-  //   fs.writeFileSync(fileName, JSON.stringify(gameData), (err) => {
-  //     if (err) throw err;
-  //     console.log(`The file ${fileName} has been updated with item removed from top of array! ${today.toTimeString()}`);
-  //   });
-  // })
+  app.get('/mock_data', async (req, res) => {
+    // let fileName = `./data-files/game_scores-mock.json`;
+    // const gameData = require("../lib/in-memory-db").scoreUpdates;
+    // console.log('game data num element', gameData.length);
+    // res.json(gameData[0]);
+    // // remove the first item and update file
+    // gameData.shift();
+    // console.log('game data after popping one from top', gameData.length)
+    // fs.writeFileSync(fileName, JSON.stringify(gameData), (err) => {
+    //   if (err) throw err;
+    //   console.log(`The file ${fileName} has been updated with item removed from top of array! ${today.toTimeString()}`);
+    // });
+    console.log(games.length);
+    if (games.length < 2) {
+      games = [...games, ...createMockGame()];
+    }
+    res.json(games.shift());
+  })
 
   // app.get('/view_mock_data', async (req, res) => {
   //   let fileName = `./data-files/game_scores-mock.json`;
