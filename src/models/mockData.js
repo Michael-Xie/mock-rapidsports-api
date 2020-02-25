@@ -7,7 +7,14 @@ const generateRandom = function(min, max) {
   return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 };
 
-
+const calculateTotal = function(scores) {
+  const {total, ...remaining} = scores;
+  let sum = 0
+  for (const score of Object.values(remaining)) {
+    sum+=score;
+  }
+  return sum;
+}
 
 
 /**
@@ -23,6 +30,8 @@ const beforeGameStart = function(gameData, status) {
   let avgGamePointsPerCall = 0;
   const quarterDict = {Q1: 'quarter_1', Q2: 'quarter_2', Q3: 'quarter_3', Q4: 'quarter_4'};
 
+  const copyGamesData = {...gamesData};
+
   if (status === "NS") {
     numCalls = parseInt(timeBuffer*(1/callPeriod));
   } else if (["Q1", "Q2", "Q3", "Q4"].includes(status)) {
@@ -30,23 +39,28 @@ const beforeGameStart = function(gameData, status) {
     avgGamePointsPerCall = parseInt(avgGamePoints/4/numCalls);
 
   }
+  console.log('numCalls', numCalls);
+  console.log('avgGamePointsPerCall', avgGamePointsPerCall);
+  console.log('copyGamesData', copyGamesData);
 
   const calls = []
   for (let i = 0; i < numCalls; i++) {
     const responses = []
     const adjustedDate = offsetDate(date, i*callPeriod, "seconds")
-    console.log('date adjust', adjustedDate.toDate());
+    // console.log('date adjust', adjustedDate.toDate());
     // create a list of game object for each call
     for (const [key, value] of Object.entries(games)) {
       // set random score for a call
       const scoresUpdate = {...games[key].scores};       
       const stat = quarterDict[status];
-      console.log('scoreUpdate', scoresUpdate);
       if (stat) {
         scoresUpdate.home[stat] += generateRandom(1, avgGamePointsPerCall);
         scoresUpdate.away[stat] += generateRandom(1, avgGamePointsPerCall); 
+        scoresUpdate.home.total = calculateTotal(scoresUpdate.home);
+        scoresUpdate.away.total = calculateTotal(scoresUpdate.away);
       }
-      console.log('scoreUpdate after gen', scoresUpdate);
+      console.log(status, "statusUpdate", scoresUpdate);
+      // console.log('scoreUpdate after gen', scoresUpdate);
       const call =  {
         id: key,
         date: adjustedDate.toDate(),
@@ -56,15 +70,13 @@ const beforeGameStart = function(gameData, status) {
         scores: scoresUpdate
       };
       responses.push(call);
+      // get scores updated to gamesData to pass down to next status
+      copyGamesData.games[call.id].scores = scoresUpdate;
     }
     // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
 
   }
-  const lastUpdate = calls[calls.length - 1].response;
-  const copyGamesData = {...gamesData};
-  copyGamesData.scores = lastUpdate.scores;
-
   return [calls, copyGamesData];
 }
 
@@ -104,7 +116,7 @@ const gamesData = {
   },
   date: date,
   gameDuration: 240, // 4min game
-  callPeriod: 3, // 3sec make 1 call
+  callPeriod: 15, // 3sec make 1 call
   timeBuffer: 10, // 180s or 3min
   avgGamePoints: 120
 }
@@ -112,8 +124,13 @@ const gamesData = {
 // const games = generateMockGame(gamesData)
 // console.log('games', games);
 // console.log('gamesData', gamesData);
-
-console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "NS"), null, 4)); //OK
+const [Q1, Q1Update] = beforeGameStart(gamesData, "Q1");
+// console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
+const [Q2, Q2Update] = beforeGameStart(Q1Update, "Q2");
+const [Q3, Q3Update] = beforeGameStart(Q2Update, "Q3");
+const [Q4, Q4Update] = beforeGameStart(Q3Update, "Q4");
+console.log('Q3', JSON.stringify(Q4, null, 3));
+// console.log('beforeStart', JSON.stringify(beforeGameStart(gamesData, "Q1"), null, 4)); //OK
 
 
 // Basketball
