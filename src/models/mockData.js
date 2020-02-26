@@ -122,13 +122,13 @@ const createMockGame = function() {
     timeBuffer: 180, // 180s or 3min
     avgGamePoints: 120
   }
-  // const [NS, NSUpdate] = generateMockScore(gamesData, "NS");
+  const [NS, NSUpdate] = generateMockScore(gamesData, "NS");
   const [Q1, Q1Update] = generateMockScore(gamesData, "Q1");
   const [Q2, Q2Update] = generateMockScore(Q1Update, "Q2");
   const [Q3, Q3Update] = generateMockScore(Q2Update, "Q3");
   const [Q4, Q4Update] = generateMockScore(Q3Update, "Q4");
   const [FT, FTUpdate] = generateMockScore(Q4Update, "FT");
-  const wholeGame = [...Q1, ...Q2, ...Q3, ...Q4, ...FT];
+  const wholeGame = [...NS, ...Q1, ...Q2, ...Q3, ...Q4, ...FT];
   return wholeGame;
 }
 
