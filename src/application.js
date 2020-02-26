@@ -41,13 +41,6 @@ let games = createMockGame();
 module.exports = function application(ENV) {
   let date = (moment().subtract(0, 'days')).toISOString(true).split('T')[0];
 
-  // const isUpdate = false;
-  // if (isUpdate) {
-  //   setInterval(() => {
-  //     getGames([date], db, true)
-  //   }, 30000)
-  // }
-
   app.use(cors())
   app.use(helmet())
   app.use(bodyparser.json())
@@ -86,6 +79,10 @@ module.exports = function application(ENV) {
   //   res.send('creating data');
   // })
 
+  app.get('/create_mock', (req, res) => {
+    games = createMockGame();
+    res.send('Creating new mock game now');
+  })
   // Use this route to grab live mock data
   app.get('/mock_data', async (req, res) => {
     // let fileName = `./data-files/game_scores-mock.json`;
