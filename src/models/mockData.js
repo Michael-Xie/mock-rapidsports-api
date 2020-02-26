@@ -1,5 +1,4 @@
-const mtz = require('moment-timezone');
-const moment = require('moment-timezone');
+const moment = require('moment');
 
 const generateRandom = function(min, max) {
   min = Math.ceil(min);
@@ -45,7 +44,7 @@ const generateMockScore = function(gamesData, status) {
     // create a list of game object for each call
     for (const [key, value] of Object.entries(games)) {
       // set random score for a call
-      const scoresUpdate = {...games[key].scores};       
+      const scoresUpdate = copyObject(games[key].scores);       
       const stat = quarterDict[status];
 
       let dateOffset = moment(date);
@@ -71,18 +70,15 @@ const generateMockScore = function(gamesData, status) {
       };
       responses.push(call);
       // get scores updated to gamesData to pass down to next status
-      copyGamesData.games[call.id].scores = scoresUpdate;
-      // console.log('updated copyGames for game', call.id, status, 'with', scoresUpdate);
+      // console.log('call', i, call, status); //ok
+      copyGamesData.games[key].scores = scoresUpdate;
+      // console.log('updated copyGames for game', key, status, 'with', copyGamesData.games[key].scores); //ok
       // console.log('responses', JSON.stringify(responses, null, 2));
     }
     // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
 
   }
-<<<<<<< Updated upstream
-  // console.log('gamesdata', JSON.stringify(gamesData, null, 3), 'copygamesdata', JSON.stringify(copyGamesData, null, 3));
-=======
->>>>>>> Stashed changes
   return [calls, copyGamesData];
 }
 
@@ -138,6 +134,7 @@ const createMockGame = function() {
 
 // createMockGame();
 console.log('whole game', JSON.stringify(createMockGame(), null, 3));
+
 module.exports = {createMockGame};
 
 // Basketball
