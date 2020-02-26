@@ -41,7 +41,7 @@ const generateMockGame = function(gamesData, status) {
   const calls = []
   for (let i = 0; i < numCalls; i++) {
     const responses = []
-    const adjustedDate = offsetDate(date, i*callPeriod, "seconds")
+    // const adjustedDate = offsetDate(date, i*callPeriod, "seconds")
     // console.log('date adjust', adjustedDate.toDate());
     // create a list of game object for each call
     for (const [key, value] of Object.entries(games)) {
@@ -58,8 +58,8 @@ const generateMockGame = function(gamesData, status) {
       // console.log('scoreUpdate after gen', scoresUpdate);
       const call =  {
         id: key,
-        date: adjustedDate.toDate(),
-        timestamp: getTimestamp(adjustedDate),
+        date: date.toDate(),
+        timestamp: getTimestamp(date),
         status: {short: status},
         league: {name: "NBA"},
         teams: {home: {name: value.home}, away: {name: value.away}},
@@ -68,7 +68,8 @@ const generateMockGame = function(gamesData, status) {
       responses.push(call);
       // get scores updated to gamesData to pass down to next status
       copyGamesData.games[call.id].scores = scoresUpdate;
-      // console.log('updated copyGames for game', call.id, status, 'with', scoresUpdate);
+      console.log('updated copyGames for game', call.id, status, 'with', scoresUpdate);
+      console.log('responses', JSON.stringify(responses, null, 2));
     }
     // format the list of object to rapidsports api and add to list of calls
     calls.push({response: responses})
@@ -79,7 +80,7 @@ const generateMockGame = function(gamesData, status) {
 
 // date - moment object
 const getTimestamp = function (date) {
-  return date.toDate().getTime();
+  return parseInt(date.toDate().getTime()/1000);
 }
 
 const offsetDate = function(date, value, quantifier) {
@@ -111,8 +112,11 @@ const createMockGame = function() {
     timeBuffer: 10, // 180s or 3min
     avgGamePoints: 120
   }
+  //const [NS, NSUpdate] = generateMockGame(gamesData, "NS");
   const [Q1, Q1Update] = generateMockGame(gamesData, "Q1");
-  // console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
+  console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
+  console.log('Q1', JSON.stringify(Q1, null, 4));
+
   const [Q2, Q2Update] = generateMockGame(Q1Update, "Q2");
   const [Q3, Q3Update] = generateMockGame(Q2Update, "Q3");
   const [Q4, Q4Update] = generateMockGame(Q3Update, "Q4");
@@ -124,7 +128,7 @@ const createMockGame = function() {
   return wholeGame;
 }
 
-// createMockGame();
+createMockGame();
 module.exports = {createMockGame};
 // const [Q1, Q1Update] = generateMockGame(gamesData, "Q1");
 // // console.log('Q1Update', JSON.stringify(Q1Update, null, 4));
