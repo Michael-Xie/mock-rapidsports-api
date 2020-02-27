@@ -62,7 +62,7 @@ const generateMockScore = function(gamesData, status) {
       const call =  {
         id: key,
         date: dateOffset.toDate(),
-        timestamp: getTimestamp(dateOffset),
+        timestamp: getTimestamp(dateOffset)/1000,
         status: {short: status},
         league: {name: "NBA"},
         teams: {home: {name: value.home}, away: {name: value.away}},
