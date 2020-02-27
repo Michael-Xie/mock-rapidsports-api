@@ -103,7 +103,7 @@ const offsetDate = function(date, value, quantifier) {
 // console.log('games', games);
 // console.log('gamesData', gamesData);
 const createMockGame = function() {
-  const date = moment();
+  const date = moment('2020-03-01');
   console.log('date', date.toDate());
 
   const initScores = 
@@ -134,9 +134,9 @@ const createMockGame = function() {
 
 // createMockGame();
 console.log('whole game', JSON.stringify(createMockGame(), null, 3));
-// let timestamp = getTimestamp(moment())
-// let date = moment(timestamp*1000).format();
-// console.log('mod date', date);
+let timestamp = getTimestamp(moment('2020-02-28'))
+let date = moment(timestamp*1000).format();
+console.log('mod date', date, typeof date);
 module.exports = {createMockGame};
 
 // Basketball
