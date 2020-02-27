@@ -61,7 +61,7 @@ const generateMockScore = function(gamesData, status) {
 
       const call =  {
         id: key,
-        date: dateOffset.toDate(),
+        date: dateOffset.format(),
         timestamp: parseInt(getTimestamp(dateOffset)/1000),
         status: {short: status},
         league: {name: "NBA"},
@@ -134,7 +134,9 @@ const createMockGame = function() {
 
 // createMockGame();
 console.log('whole game', JSON.stringify(createMockGame(), null, 3));
-
+// let timestamp = getTimestamp(moment())
+// let date = moment(timestamp*1000).format();
+// console.log('mod date', date);
 module.exports = {createMockGame};
 
 // Basketball
